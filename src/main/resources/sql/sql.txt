@@ -1,0 +1,17 @@
+use iot;
+create table tbl_data(
+	id bigint auto_increment primary key,
+    temperature float,
+    humidity float,
+    light float,
+    led_1 int,
+    led_2 int,tbl_actiontbl_data
+    time bigint
+);
+
+create table tbl_action(
+	id int auto_increment primary key,
+    time bigint,
+    device varchar(255),
+    state varchar(255)
+);
