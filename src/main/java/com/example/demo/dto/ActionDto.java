@@ -6,7 +6,6 @@ import org.springframework.util.ObjectUtils;
 
 import com.example.demo.constant.SystemConstant;
 import com.example.demo.domain.Action;
-import com.example.demo.domain.Data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

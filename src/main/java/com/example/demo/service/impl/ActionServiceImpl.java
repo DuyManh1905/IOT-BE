@@ -35,7 +35,6 @@ public class ActionServiceImpl implements ActionService {
 	@Override
 	public void saveAction(Action action) {
 		this.actionRepository.save(action);
-		
 	}
 
 

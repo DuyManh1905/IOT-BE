@@ -1,8 +1,9 @@
 package com.example.demo.configuration;
 
-import com.example.demo.domain.Data;
-import com.example.demo.service.DataService;
-import com.google.gson.Gson;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
+import java.util.Date;
+
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,88 +22,90 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
-import java.util.Date;
+import com.example.demo.domain.Data;
+import com.example.demo.service.DataService;
+import com.google.gson.Gson;
 
 @Configuration
-public class MqttConfig
-{
-    @Bean
-    public MqttPahoClientFactory mqttPahoClientFactory()
-    {
-        DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
-        MqttConnectOptions options = new MqttConnectOptions();
-        options.setServerURIs(new String[]{"tcp://192.168.1.101:1883"});
-//        options.setServerURIs(new String[]{"tcp://localhost:1883"});
-        options.setUserName("duymanh");
-        String password = "20162017a";
-        options.setPassword(password.toCharArray());
-        options.setCleanSession(true);
+public class MqttConfig {
+	@Bean
+	public MqttPahoClientFactory mqttPahoClientFactory() {
+		DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
+		MqttConnectOptions options = new MqttConnectOptions();
+//        options.setServerURIs(new String[]{"tcp://10.20.197.46"});
+		String serverUri;
+		try {
+			serverUri = String.format("tcp://%s:1883", Inet4Address.getLocalHost().getHostAddress());
+			options.setServerURIs(new String[] { serverUri });
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-        factory.setConnectionOptions(options);
-        return factory;
-    }
+		options.setUserName("duymanh");
+		String password = "20162017a";
+		options.setPassword(password.toCharArray());
+		options.setCleanSession(true);
 
-    @Bean
-    public MessageChannel mqttInputChannel()
-    {
-        return new DirectChannel();
-    }
+		factory.setConnectionOptions(options);
+		return factory;
+	}
 
-    @Bean
-    public MessageProducer inbound()
-    {
-        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn", mqttPahoClientFactory(), "#");
-        adapter.setCompletionTimeout(5000);
-        adapter.setConverter(new DefaultPahoMessageConverter());
-        adapter.setQos(2);
-        adapter.setOutputChannel(mqttInputChannel());
-        return adapter;
-    }
+	@Bean
+	public MessageChannel mqttInputChannel() {
+		return new DirectChannel();
+	}
 
-    @Bean
-    @ServiceActivator(inputChannel = "mqttInputChannel")
-    public MessageHandler handler()
-    {
-        return new MessageHandler()
-        {
-            @Autowired DataService dataService;
-            @Override
-            public void handleMessage(Message<?> message) throws MessagingException
-            {
-                String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
-                System.out.println("topicccc :"+topic);
-                if(topic.equals("dataSensorOutput"))
-                {
-                    System.out.println("nhận dữ liệu thành công");
-                    Gson gson = new Gson();
-                    Data data = gson.fromJson(message.getPayload().toString(), Data.class);
-                    data.setTime(new Date().getTime());
-                    this.dataService.saveData(data);
-                    
-                }
-                if(topic.equals("outTopic"))
-                {
-                    System.out.println("client gui du lieu");
-                }
-                System.out.println(message.getPayload());
-            }
-        };
-    }
+	@Bean
+	public MessageProducer inbound() {
+		MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn",
+				mqttPahoClientFactory(), "#");
+		adapter.setCompletionTimeout(5000);
+		adapter.setConverter(new DefaultPahoMessageConverter());
+		adapter.setQos(2);
+		adapter.setOutputChannel(mqttInputChannel());
+		return adapter;
+	}
 
-    @Bean
-    public MessageChannel mqttOutBoundChannel()
-    {
-        return new DirectChannel();
-    }
+	@Bean
+	@ServiceActivator(inputChannel = "mqttInputChannel")
+	public MessageHandler handler() {
+		return new MessageHandler() {
+			@Autowired
+			DataService dataService;
 
-    @Bean
-    @ServiceActivator(inputChannel = "mqttOutBoundChannel")
-    public MessageHandler mqttOutBound()
-    {
-        System.out.println(123);
-        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut", mqttPahoClientFactory());
-        messageHandler.setAsync(true);
-        messageHandler.setDefaultTopic("outTopic");
-        return messageHandler;
-    }
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
+				System.out.println("topic :" + topic);
+				if (topic.equals("dataSensorOutput")) {
+					System.out.println("nhận dữ liệu thành công");
+					Gson gson = new Gson();
+					Data data = gson.fromJson(message.getPayload().toString(), Data.class);
+					data.setTime(new Date().getTime());
+					this.dataService.saveData(data);
+
+				}
+				if (topic.equals("outTopic")) {
+					System.out.println("client gui du lieu");
+				}
+				System.out.println(message.getPayload());
+			}
+		};
+	}
+
+	@Bean
+	public MessageChannel mqttOutBoundChannel() {
+		return new DirectChannel();
+	}
+
+	@Bean
+	@ServiceActivator(inputChannel = "mqttOutBoundChannel")
+	public MessageHandler mqttOutBound() {
+		System.out.println("line 105 mqttconfig");
+		MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut", mqttPahoClientFactory());
+		messageHandler.setAsync(true);
+		messageHandler.setDefaultTopic("outTopic");
+		return messageHandler;
+	}
 }

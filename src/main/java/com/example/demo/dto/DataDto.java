@@ -19,10 +19,12 @@ public class DataDto {
     private Float temperature;
     private Float humidity;
     private Float light;
-    private Integer led1;
-    private Integer led2;
+//    private Integer led1;
+//    private Integer led2;
+//    private Integer led3;
     private String time;
 //    private Float dobui;
+    private Float gas;
 
     public DataDto(Data data)
     {
@@ -32,10 +34,12 @@ public class DataDto {
             this.temperature = data.getTemperature();
             this.humidity = data.getHumidity();
             this.light = data.getLight();
-            this.led1 = data.getLed1();
-            this.led2 = data.getLed2();
+//            this.led1 = data.getLed1();
+//            this.led2 = data.getLed2();
+//            this.led3 = data.getLed3();
             this.time = SystemConstant.sdfNormal.format(new Date(data.getTime()));
 //            this.dobui = data.getDobui();
+            this.gas = data.getGas();
         }
     }
 }

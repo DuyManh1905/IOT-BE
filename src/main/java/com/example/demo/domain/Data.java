@@ -23,13 +23,18 @@ public class Data {
 
     private Float light;
 
-    @Column(name = "led_1")
-    private Integer led1;
-
-    @Column(name = "led_2")
-    private Integer led2;
-
+//    @Column(name = "led_1")
+//    private Integer led1;
+//
+//    @Column(name = "led_2")
+//    private Integer led2;
+//
+//    @Column(name = "led_3")
+//    private Integer led3;
+    
     private Long time;
     
 //    private Float dobui;
+    
+    private Float gas;
 }
